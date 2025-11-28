@@ -3,64 +3,18 @@ import {
   View, Text, ScrollView, TouchableOpacity, Modal, StyleSheet, SafeAreaView,
   Dimensions, Platform, StatusBar, TextInput, Alert, BackHandler,
 } from 'react-native';
-import Svg, { Circle, Path, Line } from 'react-native-svg';
+import Svg, { Circle, Path, Line, Rect } from 'react-native-svg';
+import { 
+  HamburgerIcon, UserIcon, HomeIcon, ClockIcon, 
+  ShieldIcon, MessageIcon, MapIcon 
+} from './Icons';
+import { LogGraph } from './LogGraph';
+import { GaugeDisplay } from './GaugeDisplay';
+import { LockedScreens } from './LockedScreens';
+import { scale, scaleFont } from './utils';
+import { styles } from './styles';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const BASE_SCREEN_SIZE = 8.5;
-const currentScreenSize = Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) / 160;
-const SCALE_FACTOR = Math.min(Math.max(currentScreenSize / BASE_SCREEN_SIZE, 0.8), 1.2);
-const scale = (size: number) => Math.round(size * SCALE_FACTOR);
-const scaleFont = (size: number) => Math.round(size * SCALE_FACTOR * 0.9);
-
-// SVG Icons
-const HamburgerIcon = ({ size = 24, color = '#94a3b8' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Line x1="3" y1="6" x2="21" y2="6" stroke={color} strokeWidth="2" strokeLinecap="round"/>
-    <Line x1="3" y1="12" x2="21" y2="12" stroke={color} strokeWidth="2" strokeLinecap="round"/>
-    <Line x1="3" y1="18" x2="21" y2="18" stroke={color} strokeWidth="2" strokeLinecap="round"/>
-  </Svg>
-);
-
-const UserIcon = ({ size = 24, color = '#cbd5e1' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Circle cx="12" cy="8" r="4" stroke={color} strokeWidth="2"/>
-    <Path d="M5 20c0-4 3-7 7-7s7 3 7 7" stroke={color} strokeWidth="2" strokeLinecap="round"/>
-  </Svg>
-);
-
-const HomeIcon = ({ size = 24, color = '#94a3b8' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M3 12l9-9 9 9M5 10v10h14V10" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </Svg>
-);
-
-const ClockIcon = ({ size = 24, color = '#94a3b8' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth="2"/>
-    <Path d="M12 7v5l3 3" stroke={color} strokeWidth="2" strokeLinecap="round"/>
-  </Svg>
-);
-
-const ShieldIcon = ({ size = 24, color = '#94a3b8' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M12 2L4 6v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V6l-8-4z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <Path d="M9 12l2 2 4-4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </Svg>
-);
-
-const MessageIcon = ({ size = 24, color = '#94a3b8' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </Svg>
-);
-
-const MapIcon = ({ size = 24, color = '#94a3b8' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <Line x1="9" y1="3" x2="9" y2="18" stroke={color} strokeWidth="2"/>
-    <Line x1="15" y1="6" x2="15" y2="21" stroke={color} strokeWidth="2"/>
-  </Svg>
-);
 
 const ELDDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -88,6 +42,21 @@ const ELDDashboard = () => {
   // Hours Screen States
   const [hoursTab, setHoursTab] = useState('hos');
   const [logDate, setLogDate] = useState(new Date());
+  
+  // Verification States
+  const [verifiedDates, setVerifiedDates] = useState<string[]>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
+
+  // Mock log events
+  const [logEvents, setLogEvents] = useState([
+    { id: 1, status: 'OFF_DUTY', startHour: 0, startMinute: 0, duration: 5.5, activity: null, editable: true },
+    { id: 2, status: 'ON_DUTY', startHour: 5.5, startMinute: 30, duration: 0.42, activity: 'Pre-Trip Inspection', editable: false, inspectionDuration: 25 },
+    { id: 3, status: 'DRIVING', startHour: 6, startMinute: 0, duration: 6.25, activity: null, editable: false },
+    { id: 4, status: 'ON_DUTY', startHour: 12.25, startMinute: 15, duration: 0.25, activity: 'Fueling', editable: true },
+    { id: 5, status: 'DRIVING', startHour: 12.5, startMinute: 30, duration: 4.5, activity: null, editable: false },
+    { id: 6, status: 'SLEEPER', startHour: 17, startMinute: 0, duration: 7, activity: null, editable: true },
+  ]);
 
   const driverInfo = {
     name: 'John Cooper',
@@ -105,14 +74,13 @@ const ELDDashboard = () => {
     weekly70: { hours: 65, minutes: 30, seconds: 0, max: 70 }
   });
 
-  const [recapInfo, setRecapInfo] = useState({
-    recapStartsDate: 'Dec 5, 2024',
-    timeRegained: '02:15:00',
-    nextRecapDate: 'Dec 6, 2024',
-    timeToGain: '03:45:00'
-  });
+  const [recapDays, setRecapDays] = useState([
+    { date: 'Dec 5', timeGained: '02:15:00' },
+    { date: 'Dec 6', timeGained: '03:45:00' },
+    { date: 'Dec 7', timeGained: '01:30:00' }
+  ]);
 
-  const statuses: Record<string, { code: string; color: string; active: string }> = {
+  const statuses = {
     OFF_DUTY: { code: 'OD', color: '#6B7280', active: '#9CA3AF' },
     SLEEPER: { code: 'SB', color: '#3B82F6', active: '#60A5FA' },
     DRIVING: { code: 'D', color: '#10B981', active: '#34D399' },
@@ -120,14 +88,8 @@ const ELDDashboard = () => {
   };
 
   const onDutyActivities = [
-    'Pre-Trip Inspection',
-    'En-Route Inspection',
-    'Post-Trip Inspection',
-    'Fueling',
-    'Loading',
-    'Unloading',
-    'Yard Move',
-    'Personal Conveyance (PC)'
+    'Pre-Trip Inspection', 'En-Route Inspection', 'Post-Trip Inspection',
+    'Fueling', 'Loading', 'Unloading', 'Yard Move', 'Personal Conveyance (PC)'
   ];
 
   const dvirItems: Record<string, string[]> = {
@@ -145,16 +107,91 @@ const ELDDashboard = () => {
     'Body/Exterior': ['Damage', 'Leaks', 'Doors', 'Other']
   };
 
-  // BLOCK ANDROID BACK BUTTON WHEN LOCKED
+  const isCurrentDateVerified = () => {
+    const dateStr = logDate.toDateString();
+    return verifiedDates.includes(dateStr);
+  };
+
+  const verifyCurrentLog = () => {
+    const dateStr = logDate.toDateString();
+    if (verifiedDates.includes(dateStr)) {
+      Alert.alert('Already Verified', 'This log has already been verified and cannot be changed.');
+      return;
+    }
+    
+    Alert.alert(
+      'Verify Logs',
+      'Once verified, you will NOT be able to edit these logs. Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Verify',
+          style: 'destructive',
+          onPress: () => {
+            setVerifiedDates([...verifiedDates, dateStr]);
+            Alert.alert('Verified', 'Logs have been verified and locked.');
+          }
+        }
+      ]
+    );
+  };
+
+  const canEditEvent = (event: any) => {
+    const dateStr = logDate.toDateString();
+    const isVerified = verifiedDates.includes(dateStr);
+    if (isVerified) return false;
+    if (event.status === 'DRIVING') return false;
+    if (event.status === 'OFF_DUTY' || event.status === 'SLEEPER') return true;
+    if (event.status === 'ON_DUTY') {
+      if (event.activity && event.activity.includes('Inspection')) {
+        if (event.inspectionDuration && event.inspectionDuration >= 15) {
+          return 'limited';
+        }
+      }
+      return true;
+    }
+    return false;
+  };
+
+  const handleEditEvent = (event: any) => {
+    const canEdit = canEditEvent(event);
+    if (canEdit === false) {
+      if (verifiedDates.includes(logDate.toDateString())) {
+        Alert.alert('Cannot Edit', 'This log has been verified and cannot be edited.');
+      } else if (event.status === 'DRIVING') {
+        Alert.alert('Cannot Edit', 'Driving status cannot be edited.');
+      } else {
+        Alert.alert('Cannot Edit', 'This event cannot be edited.');
+      }
+      return;
+    }
+    setEditingEvent(event);
+    setShowEditModal(true);
+  };
+
+  const saveEditedEvent = (updatedEvent: any) => {
+    if (updatedEvent.activity && updatedEvent.activity.includes('Inspection')) {
+      if (updatedEvent.inspectionDuration >= 15) {
+        const newDuration = updatedEvent.duration * 60;
+        if (newDuration < 15) {
+          Alert.alert('Invalid Edit', 'Inspection events that were 15+ minutes cannot be reduced below 15 minutes.');
+          return;
+        }
+      }
+    }
+    setLogEvents(logEvents.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+    setShowEditModal(false);
+    setEditingEvent(null);
+  };
+
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
       if (dvirLocked || roadsideLocked) {
         Alert.alert('Screen Locked', 'You must complete this process before exiting.');
-        return true; // Block back button
+        return true;
       }
-      return false; // Allow back button
+      return false;
     });
-
     return () => backHandler.remove();
   }, [dvirLocked, roadsideLocked]);
 
@@ -168,7 +205,7 @@ const ELDDashboard = () => {
 
   const continueToRoadside = () => {
     setShowRoadsidePinModal(false);
-    setRoadsideLocked(true); // LOCK THE SCREEN
+    setRoadsideLocked(true);
   };
 
   const attemptExitRoadside = () => {
@@ -179,7 +216,7 @@ const ELDDashboard = () => {
   const verifyPinAndExit = () => {
     if (enteredPin === roadsidePin) {
       setShowExitPinModal(false);
-      setRoadsideLocked(false); // UNLOCK
+      setRoadsideLocked(false);
       setActiveScreen('dashboard');
       setEnteredPin('');
       setRoadsidePin('');
@@ -205,7 +242,7 @@ const ELDDashboard = () => {
       setShowOnDutyMenu(false);
       setDvirTimer(0);
       setDvirChecklist({});
-      setDvirLocked(true); // LOCK THE SCREEN
+      setDvirLocked(true);
     } else {
       setCurrentStatus('ON_DUTY');
       setShowOnDutyMenu(false);
@@ -221,12 +258,31 @@ const ELDDashboard = () => {
     
     Alert.alert(
       'Review Previous Day',
-      'Would you like to review the previous day\'s log for verification?',
+      'Would you like to review and verify the previous day\'s logs?',
       [
         {
           text: 'No',
           onPress: () => {
-            finalizeDVIR();
+            Alert.alert(
+              'Auto-Verify Warning',
+              'The logs will be automatically verified and you will NOT have the ability to change them. Are you sure?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Confirm',
+                  style: 'destructive',
+                  onPress: () => {
+                    const prevDate = new Date(logDate);
+                    prevDate.setDate(prevDate.getDate() - 1);
+                    const prevDateStr = prevDate.toDateString();
+                    if (!verifiedDates.includes(prevDateStr)) {
+                      setVerifiedDates([...verifiedDates, prevDateStr]);
+                    }
+                    finalizeDVIR();
+                  }
+                }
+              ]
+            );
           }
         },
         {
@@ -237,7 +293,7 @@ const ELDDashboard = () => {
             setLogDate(prevDate);
             setHoursTab('logs');
             setActiveScreen('hours');
-            setDvirLocked(false); // UNLOCK
+            setDvirLocked(false);
             setDvirType('');
             setDvirTimer(0);
           }
@@ -251,7 +307,7 @@ const ELDDashboard = () => {
       setStatusDuration({ hours: 0, minutes: 0, seconds: 0 });
     }
     setActiveScreen('dashboard');
-    setDvirLocked(false); // UNLOCK
+    setDvirLocked(false);
     setDvirType('');
     setDvirTimer(0);
   };
@@ -279,7 +335,7 @@ const ELDDashboard = () => {
 
       if (currentStatus === 'DRIVING' || currentStatus === 'ON_DUTY') {
         setGauges(prev => {
-          const updateGauge = (gauge: { hours: number; minutes: number; seconds: number; max: number }) => {
+          const updateGauge = (gauge: any) => {
             let newSeconds = gauge.seconds - 1;
             let newMinutes = gauge.minutes;
             let newHours = gauge.hours;
@@ -311,183 +367,40 @@ const ELDDashboard = () => {
 
   const formatTime = (h: number, m: number, s: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
-  const GaugeDisplay = ({ hours, minutes, seconds, max, color, label }: { hours: number; minutes: number; seconds: number; max: number; color: string; label: string }) => {
-    const totalHours = hours + (minutes / 60) + (seconds / 3600);
-    const percentage = (totalHours / max) * 100;
-    const size = scale(120);
-    const strokeWidth = scale(12);
-    const radius = (size - strokeWidth) / 2;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const currentHour = currentTime.getHours() + currentTime.getMinutes() / 60;
 
+  // Show locked screens if active
+  if (roadsideLocked || dvirLocked) {
     return (
-      <View style={styles.gaugeWrapper}>
-        <Text style={[styles.gaugeLabel, { fontSize: scaleFont(10) }]}>{label}</Text>
-        <View style={styles.gaugeContainer}>
-          <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-            <Circle cx={size/2} cy={size/2} r={radius} stroke="#1F2937" strokeWidth={strokeWidth} fill="none"/>
-            <Circle cx={size/2} cy={size/2} r={radius} stroke={color} strokeWidth={strokeWidth} fill="none"
-              strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round" transform={`rotate(-90 ${size/2} ${size/2})`}/>
-          </Svg>
-          <View style={styles.gaugeCenter}>
-            <Text style={[styles.gaugeTimeText, { fontSize: scaleFont(14) }]}>
-              {formatTime(hours, minutes, seconds)}
-            </Text>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  // FULL-SCREEN ROADSIDE LOCK
-  if (roadsideLocked) {
-    return (
-      <View style={styles.fullscreenLock}>
-        <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
-        <ScrollView style={styles.lockedContent} contentContainerStyle={{ padding: scale(20) }}>
-          <Text style={[styles.roadsideTitle, { fontSize: scaleFont(24) }]}>Roadside Inspection</Text>
-          <Text style={[styles.roadsideSubtitle, { fontSize: scaleFont(14) }]}>Hours of Service Overview</Text>
-          
-          <View style={styles.roadsideInfo}>
-            <Text style={[styles.roadsideLabel, { fontSize: scaleFont(12) }]}>Driver: {driverInfo.name}</Text>
-            <Text style={[styles.roadsideLabel, { fontSize: scaleFont(12) }]}>ID: {driverInfo.driverId}</Text>
-            <Text style={[styles.roadsideLabel, { fontSize: scaleFont(12) }]}>Truck: {driverInfo.truckNumber}</Text>
-            <Text style={[styles.roadsideLabel, { fontSize: scaleFont(12) }]}>Company: {driverInfo.companyId}</Text>
-            <Text style={[styles.roadsideLabel, { fontSize: scaleFont(12) }]}>Rule Set: {ruleSet}</Text>
-            <Text style={[styles.roadsideLabel, { fontSize: scaleFont(12) }]}>Current Status: {currentStatus.replace('_', ' ')}</Text>
-          </View>
-
-          <View style={styles.roadsideHOS}>
-            <Text style={[styles.hosTitle, { fontSize: scaleFont(16) }]}>Hours Remaining:</Text>
-            <Text style={[styles.hosText, { fontSize: scaleFont(14) }]}>8-Hour Break: {formatTime(gauges.break8.hours, gauges.break8.minutes, gauges.break8.seconds)}</Text>
-            <Text style={[styles.hosText, { fontSize: scaleFont(14) }]}>11-Hour Drive: {formatTime(gauges.drive11.hours, gauges.drive11.minutes, gauges.drive11.seconds)}</Text>
-            <Text style={[styles.hosText, { fontSize: scaleFont(14) }]}>14-Hour Shift: {formatTime(gauges.shift14.hours, gauges.shift14.minutes, gauges.shift14.seconds)}</Text>
-          </View>
-
-          <View style={styles.roadsideOptions}>
-            <Text style={[styles.optionsTitle, { fontSize: scaleFont(16) }]}>Send Logs To Officer:</Text>
-            <TouchableOpacity style={styles.optionButton} activeOpacity={0.7}>
-              <Text style={[styles.optionText, { fontSize: scaleFont(14) }]}>Email Logs</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.optionButton} activeOpacity={0.7}>
-              <Text style={[styles.optionText, { fontSize: scaleFont(14) }]}>Web Portal Access</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.optionButton} activeOpacity={0.7}>
-              <Text style={[styles.optionText, { fontSize: scaleFont(14) }]}>Print Logs</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity onPress={attemptExitRoadside} style={styles.exitRoadsideButton} activeOpacity={0.7}>
-            <Text style={[styles.exitRoadsideText, { fontSize: scaleFont(16) }]}>Complete Inspection</Text>
-          </TouchableOpacity>
-        </ScrollView>
-
-        <Modal visible={showExitPinModal} transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <View style={styles.pinModalContent}>
-              <Text style={[styles.pinTitle, { fontSize: scaleFont(20) }]}>Enter PIN to Exit</Text>
-              <TextInput
-                style={[styles.pinInput, { fontSize: scaleFont(24) }]}
-                value={enteredPin}
-                onChangeText={setEnteredPin}
-                keyboardType="number-pad"
-                maxLength={6}
-                placeholder="000000"
-                placeholderTextColor="#475569"
-                autoFocus
-              />
-              <TouchableOpacity onPress={verifyPinAndExit} style={styles.pinVerifyButton} activeOpacity={0.7}>
-                <Text style={[styles.pinVerifyText, { fontSize: scaleFont(16) }]}>Verify PIN</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowExitPinModal(false)} style={styles.pinCancelButton} activeOpacity={0.7}>
-                <Text style={[styles.pinCancelText, { fontSize: scaleFont(14) }]}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      </View>
+      <LockedScreens
+        roadsideLocked={roadsideLocked}
+        dvirLocked={dvirLocked}
+        dvirType={dvirType}
+        dvirTimer={dvirTimer}
+        dvirChecklist={dvirChecklist}
+        setDvirChecklist={setDvirChecklist}
+        dvirItems={dvirItems}
+        driverInfo={driverInfo}
+        gauges={gauges}
+        formatTime={formatTime}
+        currentStatus={currentStatus}
+        ruleSet={ruleSet}
+        attemptExitRoadside={attemptExitRoadside}
+        completeDVIR={completeDVIR}
+        toggleDefect={toggleDefect}
+        showDefectModal={showDefectModal}
+        setShowDefectModal={setShowDefectModal}
+        currentDefectItem={currentDefectItem}
+        showExitPinModal={showExitPinModal}
+        enteredPin={enteredPin}
+        setEnteredPin={setEnteredPin}
+        verifyPinAndExit={verifyPinAndExit}
+        setShowExitPinModal={setShowExitPinModal}
+      />
     );
   }
 
-  // FULL-SCREEN DVIR LOCK
-  if (dvirLocked) {
-    return (
-      <View style={styles.fullscreenLock}>
-        <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
-        <ScrollView style={styles.lockedContent} contentContainerStyle={{ padding: scale(20), paddingBottom: scale(100) }}>
-          <Text style={[styles.dvirTitle, { fontSize: scaleFont(20) }]}>
-            {dvirType === 'pre' ? 'Pre-Trip' : dvirType === 'enroute' ? 'En-Route' : 'Post-Trip'} Inspection
-          </Text>
-
-          <View style={styles.dvirHeader}>
-            <Text style={[styles.dvirHeaderText, { fontSize: scaleFont(12) }]}>Driver: {driverInfo.name} ({driverInfo.driverId})</Text>
-            <Text style={[styles.dvirHeaderText, { fontSize: scaleFont(12) }]}>Company: {driverInfo.companyId}</Text>
-            <Text style={[styles.dvirHeaderText, { fontSize: scaleFont(12) }]}>Truck: {driverInfo.truckNumber} | Trailer: {driverInfo.trailerNumber}</Text>
-            
-            <View style={styles.dvirTimerContainer}>
-              <Text style={[styles.dvirTimer, { fontSize: scaleFont(24) }]}>
-                {Math.floor(dvirTimer / 60).toString().padStart(2, '0')}:{(dvirTimer % 60).toString().padStart(2, '0')} / 15:00
-              </Text>
-              <Text style={[styles.dvirTimerLabel, { fontSize: scaleFont(10) }]}>
-                {dvirTimer < 900 ? `${Math.floor((900 - dvirTimer) / 60)} min ${(900 - dvirTimer) % 60} sec remaining` : 'Minimum time met ✓'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.dvirChecklistContainer}>
-            {Object.entries(dvirItems).map(([item, subitems]) => (
-              <View key={item} style={styles.dvirChecklistItem}>
-                <View style={styles.dvirChecklistRow}>
-                  <TouchableOpacity
-                    onPress={() => setDvirChecklist(prev => ({ ...prev, [item]: !prev[item] }))}
-                    style={styles.dvirCheckbox}
-                  >
-                    {dvirChecklist[item] && <Text style={{ fontSize: scaleFont(14), color: '#10b981' }}>✓</Text>}
-                  </TouchableOpacity>
-                  <Text style={[styles.dvirChecklistText, { fontSize: scaleFont(14) }]}>{item}</Text>
-                  <TouchableOpacity onPress={() => toggleDefect(item)} style={styles.dvirDefectButton}>
-                    <Text style={[styles.dvirDefectButtonText, { fontSize: scaleFont(12) }]}>Defect</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          <TouchableOpacity
-            onPress={completeDVIR}
-            style={[styles.dvirCompleteButton, dvirTimer < 900 && styles.dvirCompleteButtonDisabled]}
-            disabled={dvirTimer < 900}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.dvirCompleteText, { fontSize: scaleFont(16) }]}>
-              {dvirTimer < 900 ? 'Complete Inspection (Minimum time required)' : 'Complete Inspection'}
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-
-        <Modal visible={showDefectModal} transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={[styles.modalTitle, { fontSize: scaleFont(18) }]}>Report Defect: {currentDefectItem}</Text>
-              <ScrollView style={styles.modalScrollView}>
-                {currentDefectItem && dvirItems[currentDefectItem]?.map(subitem => (
-                  <TouchableOpacity key={subitem} style={styles.activityButton} activeOpacity={0.7}>
-                    <Text style={[styles.activityText, { fontSize: scaleFont(14) }]}>{subitem}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-              <TouchableOpacity onPress={() => setShowDefectModal(false)} style={styles.cancelButton} activeOpacity={0.7}>
-                <Text style={[styles.cancelText, { fontSize: scaleFont(15) }]}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      </View>
-    );
-  }
-
-  // NORMAL APP (UNLOCKED)
+  // MAIN APP UI
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#1e293b" />
@@ -626,12 +539,17 @@ const ELDDashboard = () => {
                   </View>
                 </View>
 
+                {/* 3-DAY RECAP DISPLAY */}
                 <View style={styles.recapContainer}>
                   <Text style={[styles.recapTitle, { fontSize: scaleFont(14) }]}>Recap Information</Text>
-                  <Text style={[styles.recapText, { fontSize: scaleFont(12) }]}>Recap Starts: {recapInfo.recapStartsDate}</Text>
-                  <Text style={[styles.recapText, { fontSize: scaleFont(12) }]}>Time Regained: {recapInfo.timeRegained}</Text>
-                  <Text style={[styles.recapText, { fontSize: scaleFont(12) }]}>Next Recap: {recapInfo.nextRecapDate}</Text>
-                  <Text style={[styles.recapText, { fontSize: scaleFont(12) }]}>Time to Gain: {recapInfo.timeToGain}</Text>
+                  <View style={styles.recapDaysContainer}>
+                    {recapDays.map((day, idx) => (
+                      <View key={idx} style={styles.recapDayCard}>
+                        <Text style={[styles.recapDayDate, { fontSize: scaleFont(12) }]}>{day.date}</Text>
+                        <Text style={[styles.recapDayTime, { fontSize: scaleFont(16) }]}>+{day.timeGained}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
               </>
             )}
@@ -650,44 +568,37 @@ const ELDDashboard = () => {
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.logGraph}>
-                  <View style={styles.logGraphLabels}>
-                    <View style={styles.logGraphLabelRow}>
-                      <Text style={[styles.logGraphLabel, { fontSize: scaleFont(12) }]}>OFF DUTY</Text>
-                      <Text style={[styles.logGraphTime, { fontSize: scaleFont(12) }]}>08:45:30</Text>
-                    </View>
-                    <View style={styles.logGraphLabelRow}>
-                      <Text style={[styles.logGraphLabel, { fontSize: scaleFont(12) }]}>SLEEPER</Text>
-                      <Text style={[styles.logGraphTime, { fontSize: scaleFont(12) }]}>07:00:00</Text>
-                    </View>
-                    <View style={styles.logGraphLabelRow}>
-                      <Text style={[styles.logGraphLabel, { fontSize: scaleFont(12) }]}>DRIVING</Text>
-                      <Text style={[styles.logGraphTime, { fontSize: scaleFont(12) }]}>06:15:20</Text>
-                    </View>
-                    <View style={styles.logGraphLabelRow}>
-                      <Text style={[styles.logGraphLabel, { fontSize: scaleFont(12) }]}>ON DUTY</Text>
-                      <Text style={[styles.logGraphTime, { fontSize: scaleFont(12) }]}>01:59:10</Text>
-                    </View>
-                  </View>
+                {/* VERIFY BUTTON */}
+                <TouchableOpacity 
+                  onPress={verifyCurrentLog} 
+                  style={[styles.verifyButton, isCurrentDateVerified() && styles.verifyButtonDisabled]}
+                  disabled={isCurrentDateVerified()}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.verifyButtonText, { fontSize: scaleFont(14) }]}>
+                    {isCurrentDateVerified() ? '✓ Verified' : 'Verify Logs'}
+                  </Text>
+                </TouchableOpacity>
 
-                  <View style={styles.logGraphGrid}>
-                    <Text style={[styles.logGraphPlaceholder, { fontSize: scaleFont(12) }]}>
-                      [Log graph visualization will be implemented here]
-                    </Text>
-                  </View>
-                </View>
+                {/* LOG GRAPH */}
+                <LogGraph events={logEvents} currentHour={currentHour} />
 
+                {/* EVENTS LOG */}
                 <View style={styles.logEvents}>
                   <Text style={[styles.logEventsTitle, { fontSize: scaleFont(14) }]}>Events Log</Text>
-                  <View style={styles.logEvent}>
-                    <Text style={[styles.logEventText, { fontSize: scaleFont(12) }]}>05:30 - ON DUTY (Pre-Trip Inspection) - 00:25:00</Text>
-                  </View>
-                  <View style={styles.logEvent}>
-                    <Text style={[styles.logEventText, { fontSize: scaleFont(12) }]}>06:00 - DRIVING - Dallas, TX</Text>
-                  </View>
-                  <View style={styles.logEvent}>
-                    <Text style={[styles.logEventText, { fontSize: scaleFont(12) }]}>12:15 - ON DUTY (Fueling) - 00:15:00 - Austin, TX</Text>
-                  </View>
+                  {logEvents.map(event => (
+                    <TouchableOpacity 
+                      key={event.id} 
+                      onPress={() => handleEditEvent(event)}
+                      style={styles.logEvent}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.logEventText, { fontSize: scaleFont(12) }]}>
+                        {String(Math.floor(event.startHour)).padStart(2, '0')}:{String(Math.floor(event.startMinute)).padStart(2, '0')} - {event.status.replace('_', ' ')}
+                        {event.activity && ` (${event.activity})`} - {formatTime(Math.floor(event.duration), Math.floor((event.duration % 1) * 60), 0)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
               </>
             )}
@@ -746,125 +657,5 @@ const ELDDashboard = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f172a' },
-  fullscreenLock: { flex: 1, backgroundColor: '#0f172a' },
-  lockedContent: { flex: 1 },
-  topToolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: scale(16), paddingVertical: scale(12), backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155' },
-  menuButton: { padding: scale(8) },
-  toolbarTitle: { fontWeight: 'bold', color: '#60a5fa' },
-  userButton: { width: scale(40), height: scale(40), borderRadius: scale(20), backgroundColor: '#334155', alignItems: 'center', justifyContent: 'center' },
-  mainContent: { flex: 1 },
-  contentContainer: { padding: scale(16), paddingBottom: scale(100) },
-  driverInfoContainer: { marginBottom: scale(16) },
-  driverName: { fontWeight: '600', color: '#f1f5f9' },
-  driverDetails: { color: '#94a3b8', marginTop: scale(4) },
-  statusCard: { backgroundColor: '#1e293b', borderRadius: scale(12), padding: scale(16), marginBottom: scale(20), borderWidth: 1, borderColor: '#334155' },
-  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  infoSection: { flex: 1, gap: scale(6) },
-  infoItem: { flexDirection: 'row', alignItems: 'center', gap: scale(6) },
-  infoText: { color: '#cbd5e1' },
-  statusDisplayContainer: { flex: 1.5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: scale(12) },
-  statusDisplay: { alignItems: 'center', justifyContent: 'center' },
-  statusTextLabel: { textTransform: 'uppercase', letterSpacing: 1.2, color: '#94a3b8', marginBottom: scale(2), fontWeight: '600' },
-  statusText: { fontWeight: 'bold', marginBottom: scale(2), textAlign: 'center' },
-  statusDuration: { fontWeight: 'bold', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', color: '#f1f5f9', letterSpacing: 1 },
-  statusButtonsContainer: { flex: 1, alignItems: 'flex-end' },
-  statusButtons: { flexDirection: 'row', gap: scale(3), backgroundColor: '#0f172a', borderRadius: scale(8), padding: scale(4), flexWrap: 'wrap' },
-  statusButton: { paddingHorizontal: scale(10), paddingVertical: scale(5), borderRadius: scale(6), minWidth: scale(45) },
-  activeStatusButton: { backgroundColor: 'rgba(255,255,255,0.1)' },
-  statusButtonText: { fontWeight: 'bold', textAlign: 'center' },
-  gaugesContainer: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: scale(20), flexWrap: 'wrap', gap: scale(10) },
-  gaugeWrapper: { alignItems: 'center', marginBottom: scale(10) },
-  gaugeLabel: { color: '#94a3b8', marginBottom: scale(8), textAlign: 'center', fontWeight: '600' },
-  gaugeContainer: { alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  gaugeCenter: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
-  gaugeTimeText: { fontWeight: 'bold', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', color: '#f1f5f9' },
-  ruleContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: scale(20), backgroundColor: '#1e293b', padding: scale(12), borderRadius: scale(8), borderWidth: 1, borderColor: '#334155' },
-  ruleLabel: { color: '#94a3b8' },
-  ruleValue: { fontWeight: 'bold', color: '#60a5fa' },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#1e293b', borderTopWidth: 1, borderTopColor: '#334155', paddingVertical: scale(8), paddingBottom: Platform.OS === 'ios' ? scale(24) : scale(8), position: 'absolute', bottom: 0, left: 0, right: 0 },
-  navItem: { alignItems: 'center', justifyContent: 'center', padding: scale(6), borderRadius: scale(8), minWidth: scale(60) },
-  activeNavItem: { backgroundColor: 'rgba(96, 165, 250, 0.2)' },
-  navLabel: { fontWeight: '500', marginTop: scale(2) },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', padding: scale(20) },
-  modalContent: { backgroundColor: '#1e293b', borderRadius: scale(12), padding: scale(20), width: SCREEN_WIDTH * 0.85, maxHeight: SCREEN_HEIGHT * 0.7, borderWidth: 1, borderColor: '#334155' },
-  modalTitle: { fontWeight: 'bold', color: '#f1f5f9', marginBottom: scale(16), textAlign: 'center' },
-  modalScrollView: { maxHeight: SCREEN_HEIGHT * 0.5 },
-  activityButton: { backgroundColor: '#334155', padding: scale(14), borderRadius: scale(8), marginBottom: scale(8) },
-  activityText: { color: '#f1f5f9', textAlign: 'center' },
-  cancelButton: { backgroundColor: '#dc2626', padding: scale(14), borderRadius: scale(8), marginTop: scale(12) },
-  cancelText: { color: '#f1f5f9', textAlign: 'center', fontWeight: 'bold' },
-  placeholderScreen: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: scale(100) },
-  placeholderText: { color: '#94a3b8', fontWeight: '600' },
-  roadsideTitle: { color: '#60a5fa', fontWeight: 'bold', marginBottom: scale(10), textAlign: 'center' },
-  roadsideSubtitle: { color: '#94a3b8', marginBottom: scale(20), textAlign: 'center' },
-  roadsideInfo: { backgroundColor: '#1e293b', padding: scale(16), borderRadius: scale(8), marginBottom: scale(20), borderWidth: 1, borderColor: '#334155' },
-  roadsideLabel: { color: '#cbd5e1', marginBottom: scale(8) },
-  roadsideHOS: { backgroundColor: '#1e293b', padding: scale(16), borderRadius: scale(8), marginBottom: scale(20), borderWidth: 1, borderColor: '#334155' },
-  hosTitle: { color: '#60a5fa', fontWeight: 'bold', marginBottom: scale(10) },
-  hosText: { color: '#f1f5f9', marginBottom: scale(6), fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' },
-  roadsideOptions: { backgroundColor: '#1e293b', padding: scale(16), borderRadius: scale(8), marginBottom: scale(20), borderWidth: 1, borderColor: '#334155' },
-  optionsTitle: { color: '#60a5fa', fontWeight: 'bold', marginBottom: scale(12) },
-  optionButton: { backgroundColor: '#334155', padding: scale(12), borderRadius: scale(6), marginBottom: scale(8) },
-  optionText: { color: '#f1f5f9', textAlign: 'center' },
-  exitRoadsideButton: { backgroundColor: '#10b981', padding: scale(16), borderRadius: scale(8) },
-  exitRoadsideText: { color: '#fff', textAlign: 'center', fontWeight: 'bold' },
-  pinModalContent: { backgroundColor: '#1e293b', borderRadius: scale(12), padding: scale(24), width: SCREEN_WIDTH * 0.9, borderWidth: 2, borderColor: '#ef4444' },
-  pinTitle: { color: '#f1f5f9', fontWeight: 'bold', textAlign: 'center', marginBottom: scale(16) },
-  pinWarning: { color: '#ef4444', fontWeight: 'bold', textAlign: 'center', marginBottom: scale(12) },
-  pinDisplay: { color: '#60a5fa', fontWeight: 'bold', textAlign: 'center', marginBottom: scale(20), fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', letterSpacing: 4 },
-  pinInstructions: { color: '#cbd5e1', textAlign: 'center', marginBottom: scale(20), lineHeight: 20 },
-  pinContinueButton: { backgroundColor: '#10b981', padding: scale(14), borderRadius: scale(8) },
-  pinContinueText: { color: '#fff', textAlign: 'center', fontWeight: 'bold' },
-  pinInput: { backgroundColor: '#0f172a', borderWidth: 2, borderColor: '#60a5fa', borderRadius: scale(8), padding: scale(16), textAlign: 'center', color: '#f1f5f9', marginBottom: scale(20), fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', letterSpacing: 8 },
-  pinVerifyButton: { backgroundColor: '#10b981', padding: scale(14), borderRadius: scale(8), marginBottom: scale(10) },
-  pinVerifyText: { color: '#fff', textAlign: 'center', fontWeight: 'bold' },
-  pinCancelButton: { backgroundColor: '#334155', padding: scale(12), borderRadius: scale(8) },
-  pinCancelText: { color: '#cbd5e1', textAlign: 'center' },
-  tabContainer: { flexDirection: 'row', marginBottom: scale(20), backgroundColor: '#1e293b', borderRadius: scale(8), padding: scale(4) },
-  tab: { flex: 1, paddingVertical: scale(10), alignItems: 'center', borderRadius: scale(6) },
-  activeTab: { backgroundColor: '#60a5fa' },
-  tabText: { color: '#94a3b8', fontWeight: '600' },
-  activeTabText: { color: '#fff' },
-  hosGaugesContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', marginBottom: scale(20) },
-  hosStatusButtons: { backgroundColor: '#1e293b', padding: scale(16), borderRadius: scale(8), marginBottom: scale(20), borderWidth: 1, borderColor: '#334155' },
-  hosStatusLabel: { color: '#60a5fa', marginBottom: scale(10), fontWeight: '600' },
-  recapContainer: { backgroundColor: '#1e293b', padding: scale(16), borderRadius: scale(8), marginBottom: scale(20), borderWidth: 1, borderColor: '#334155' },
-  recapTitle: { color: '#60a5fa', fontWeight: 'bold', marginBottom: scale(10) },
-  recapText: { color: '#cbd5e1', marginBottom: scale(6) },
-  logDateNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: scale(20), backgroundColor: '#1e293b', padding: scale(12), borderRadius: scale(8), borderWidth: 1, borderColor: '#334155' },
-  logDateButton: { padding: scale(8) },
-  logDateButtonText: { color: '#60a5fa', fontWeight: 'bold' },
-  logDateText: { color: '#f1f5f9', fontWeight: '600' },
-  logGraph: { backgroundColor: '#1e293b', padding: scale(16), borderRadius: scale(8), marginBottom: scale(20), borderWidth: 1, borderColor: '#334155' },
-  logGraphLabels: { marginBottom: scale(16) },
-  logGraphLabelRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: scale(8), borderBottomWidth: 1, borderBottomColor: '#334155' },
-  logGraphLabel: { color: '#cbd5e1', fontWeight: '600' },
-  logGraphTime: { color: '#60a5fa', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' },
-  logGraphGrid: { minHeight: scale(200), justifyContent: 'center', alignItems: 'center' },
-  logGraphPlaceholder: { color: '#475569', textAlign: 'center' },
-  logEvents: { backgroundColor: '#1e293b', padding: scale(16), borderRadius: scale(8), borderWidth: 1, borderColor: '#334155' },
-  logEventsTitle: { color: '#60a5fa', fontWeight: 'bold', marginBottom: scale(12) },
-  logEvent: { paddingVertical: scale(8), borderBottomWidth: 1, borderBottomColor: '#334155' },
-  logEventText: { color: '#cbd5e1' },
-  dvirTitle: { color: '#60a5fa', fontWeight: 'bold', textAlign: 'center', marginBottom: scale(16) },
-  dvirHeader: { backgroundColor: '#1e293b', padding: scale(16), borderRadius: scale(8), marginBottom: scale(16), borderWidth: 1, borderColor: '#334155' },
-  dvirHeaderText: { color: '#cbd5e1', marginBottom: scale(4) },
-  dvirTimerContainer: { marginTop: scale(12), alignItems: 'center' },
-  dvirTimer: { color: '#60a5fa', fontWeight: 'bold', fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' },
-  dvirTimerLabel: { color: '#94a3b8', marginTop: scale(4) },
-  dvirChecklistContainer: { marginBottom: scale(16) },
-  dvirChecklistItem: { marginBottom: scale(12) },
-  dvirChecklistRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1e293b', padding: scale(12), borderRadius: scale(8), borderWidth: 1, borderColor: '#334155' },
-  dvirCheckbox: { width: scale(24), height: scale(24), borderWidth: 2, borderColor: '#60a5fa', borderRadius: scale(4), marginRight: scale(12), alignItems: 'center', justifyContent: 'center' },
-  dvirChecklistText: { flex: 1, color: '#f1f5f9' },
-  dvirDefectButton: { backgroundColor: '#ef4444', paddingHorizontal: scale(12), paddingVertical: scale(6), borderRadius: scale(6) },
-  dvirDefectButtonText: { color: '#fff', fontWeight: '600' },
-  dvirCompleteButton: { backgroundColor: '#10b981', padding: scale(16), borderRadius: scale(8) },
-  dvirCompleteButtonDisabled: { backgroundColor: '#475569' },
-  dvirCompleteText: { color: '#fff', textAlign: 'center', fontWeight: 'bold' },
-});
 
 export default ELDDashboard;
