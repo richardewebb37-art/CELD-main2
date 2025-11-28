@@ -230,7 +230,7 @@ export const styles = StyleSheet.create({
   
   // LEFT LABELS (OFF, SLEEPER, DRIVING, ON)
   logGraphLeftLabels: { 
-    width: scale(55), 
+    width: '12%', 
     justifyContent: 'space-around',
     marginRight: scale(8)
   },
