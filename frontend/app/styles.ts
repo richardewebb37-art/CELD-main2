@@ -248,14 +248,13 @@ export const styles = StyleSheet.create({
     flex: 1 
   },
   logGraphHourMarkers: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
+    position: 'relative',
+    height: scale(20),
     marginTop: scale(6)
   },
   logGraphHourMarker: { 
     color: '#94a3b8', 
-    textAlign: 'center',
-    flex: 1
+    textAlign: 'center'
   },
   
   // RIGHT TIMES
