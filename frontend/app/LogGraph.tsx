@@ -7,8 +7,11 @@ import { styles } from './styles';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const LogGraph = ({ events, currentHour }) => {
-  const graphWidth = SCREEN_WIDTH - scale(180); // More room for labels on left/right
-  const graphHeight = scale(240);
+  // Calculate responsive dimensions
+  const leftLabelWidth = SCREEN_WIDTH * 0.12; // 12% for left labels
+  const rightTimeWidth = SCREEN_WIDTH * 0.12; // 12% for right times
+  const graphWidth = SCREEN_WIDTH - leftLabelWidth - rightTimeWidth - scale(40); // Remaining for graph with padding
+  const graphHeight = SCREEN_WIDTH * 0.3; // 30% of screen width for height
   const hourWidth = graphWidth / 24;
   const lineHeight = graphHeight / 4;
   
