@@ -7,7 +7,7 @@ import { styles } from './styles';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const LogGraph = ({ events, currentHour }) => {
-  const graphWidth = SCREEN_WIDTH - scale(140); // Leave room for labels on left/right
+  const graphWidth = SCREEN_WIDTH - scale(180); // More room for labels on left/right
   const graphHeight = scale(240);
   const hourWidth = graphWidth / 24;
   const lineHeight = graphHeight / 4;
@@ -27,7 +27,6 @@ export const LogGraph = ({ events, currentHour }) => {
   };
 
   const statusLabels = ['OFF', 'SLEEPER', 'DRIVING', 'ON'];
-  const hourMarkers = ['12A', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12P', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12A'];
 
   // Calculate total time for each status
   const calculateTotalTime = (status) => {
@@ -54,7 +53,7 @@ export const LogGraph = ({ events, currentHour }) => {
       {/* Main graph container */}
       <View style={styles.logGraphMainContainer}>
         <Svg width={graphWidth} height={graphHeight}>
-          {/* Vertical hour grid lines */}
+          {/* Vertical hour grid lines (main lines) */}
           {[...Array(25)].map((_, i) => (
             <Line
               key={`grid-${i}`}
@@ -63,9 +62,24 @@ export const LogGraph = ({ events, currentHour }) => {
               x2={i * hourWidth}
               y2={graphHeight}
               stroke="#334155"
-              strokeWidth="1"
+              strokeWidth="2"
             />
           ))}
+          
+          {/* 15-minute increment tick marks */}
+          {[...Array(24)].map((_, hour) => 
+            [0.25, 0.5, 0.75].map((fraction) => (
+              <Line
+                key={`tick-${hour}-${fraction}`}
+                x1={(hour + fraction) * hourWidth}
+                y1={graphHeight - scale(10)}
+                x2={(hour + fraction) * hourWidth}
+                y2={graphHeight}
+                stroke="#475569"
+                strokeWidth="1"
+              />
+            ))
+          )}
           
           {/* Horizontal status separator lines */}
           {[1, 2, 3].map(i => (
@@ -113,11 +127,11 @@ export const LogGraph = ({ events, currentHour }) => {
           )}
         </Svg>
         
-        {/* Bottom hour markers */}
+        {/* Bottom hour markers - Military time */}
         <View style={styles.logGraphHourMarkers}>
-          {hourMarkers.map((hour, idx) => (
-            <Text key={`hour-${idx}`} style={[styles.logGraphHourMarker, { fontSize: scaleFont(9) }]}>
-              {hour}
+          {[...Array(25)].map((_, i) => (
+            <Text key={`hour-${i}`} style={[styles.logGraphHourMarker, { fontSize: scaleFont(9) }]}>
+              {i === 24 ? '0' : i}
             </Text>
           ))}
         </View>
