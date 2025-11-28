@@ -1,19 +1,10 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { scale, scaleFont } from './utils';
 import { styles } from './styles';
 
-interface GaugeDisplayProps {
-  hours: number;
-  minutes: number;
-  seconds: number;
-  max: number;
-  color: string;
-  label: string;
-}
-
-export const GaugeDisplay = ({ hours, minutes, seconds, max, color, label }: GaugeDisplayProps) => {
+export const GaugeDisplay = ({ hours, minutes, seconds, max, color, label }) => {
   const totalHours = hours + (minutes / 60) + (seconds / 3600);
   const percentage = (totalHours / max) * 100;
   const size = scale(120);
@@ -22,7 +13,7 @@ export const GaugeDisplay = ({ hours, minutes, seconds, max, color, label }: Gau
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-  const formatTime = (h: number, m: number, s: number) => 
+  const formatTime = (h, m, s) => 
     `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
   return (
