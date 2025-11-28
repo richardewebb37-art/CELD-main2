@@ -259,7 +259,7 @@ export const styles = StyleSheet.create({
   
   // RIGHT TIMES
   logGraphRightTimes: { 
-    width: scale(50), 
+    width: '12%', 
     justifyContent: 'space-around',
     marginLeft: scale(8)
   },
