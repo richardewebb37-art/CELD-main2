@@ -217,7 +217,7 @@ export const styles = StyleSheet.create({
   verifyButtonDisabled: { backgroundColor: '#475569' },
   verifyButtonText: { color: '#fff', fontWeight: 'bold' },
   
-  // LOG GRAPH - EXACT LAYOUT
+  // LOG GRAPH - NO GAPS VERSION
   logGraphWrapper: { 
     flexDirection: 'row', 
     backgroundColor: '#1e293b', 
@@ -228,15 +228,16 @@ export const styles = StyleSheet.create({
     borderColor: '#334155' 
   },
   
-  // LEFT LABELS (OFF, SLEEPER, DRIVING, ON)
+  // LEFT LABELS
   logGraphLeftLabels: { 
-    width: '12%', 
-    justifyContent: 'space-around',
+    width: scale(60), 
+    justifyContent: 'flex-start',
     marginRight: scale(8)
   },
   logGraphLeftLabel: { 
     justifyContent: 'center', 
-    alignItems: 'flex-start' 
+    alignItems: 'flex-start',
+    paddingVertical: 0  // NO PADDING - fills exactly
   },
   logGraphLeftLabelText: { 
     color: '#cbd5e1', 
@@ -248,8 +249,8 @@ export const styles = StyleSheet.create({
     flex: 1 
   },
   logGraphHourMarkers: { 
-    position: 'relative',
-    height: scale(20),
+    flexDirection: 'row', 
+    justifyContent: 'flex-start', 
     marginTop: scale(6)
   },
   logGraphHourMarker: { 
@@ -259,17 +260,19 @@ export const styles = StyleSheet.create({
   
   // RIGHT TIMES
   logGraphRightTimes: { 
-    width: '12%', 
-    justifyContent: 'space-around',
+    width: scale(50), 
+    justifyContent: 'flex-start',
     marginLeft: scale(8)
   },
   logGraphRightTime: { 
     justifyContent: 'center', 
-    alignItems: 'flex-end' 
+    alignItems: 'flex-end',
+    paddingVertical: 0  // NO PADDING - fills exactly
   },
   logGraphRightTimeText: { 
     color: '#60a5fa', 
-    fontWeight: '600' 
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
   },
   
   // EVENTS LOG
