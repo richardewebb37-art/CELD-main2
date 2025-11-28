@@ -27,7 +27,7 @@ export const LogGraph = ({ events, currentHour }) => {
   };
 
   const statusLabels = ['OFF', 'SLEEPER', 'DRIVING', 'ON'];
-  const hourMarkers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', 'N', '1', 'S', '8', '4', '3', '4', '2', '8', 'Y', 'M', 'N'];
+  const hourMarkers = ['12A', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12P', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12A'];
 
   // Calculate total time for each status
   const calculateTotalTime = (status) => {
