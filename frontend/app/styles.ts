@@ -220,17 +220,17 @@ export const styles = StyleSheet.create({
   // LOG GRAPH - EXACT LAYOUT
   logGraphWrapper: { 
     flexDirection: 'row', 
-    backgroundColor: '#000000', 
+    backgroundColor: '#1e293b', 
     borderRadius: scale(8), 
     padding: scale(12), 
     marginBottom: scale(16), 
     borderWidth: 1, 
-    borderColor: '#333333' 
+    borderColor: '#334155' 
   },
   
-  // LEFT LABELS (OF, 40, DNC, ON)
+  // LEFT LABELS (OFF, SLEEPER, DRIVING, ON)
   logGraphLeftLabels: { 
-    width: scale(35), 
+    width: scale(55), 
     justifyContent: 'space-around',
     marginRight: scale(8)
   },
@@ -239,7 +239,7 @@ export const styles = StyleSheet.create({
     alignItems: 'flex-start' 
   },
   logGraphLeftLabelText: { 
-    color: '#ffffff', 
+    color: '#cbd5e1', 
     fontWeight: '600' 
   },
   
