@@ -130,7 +130,12 @@ export const LogGraph = ({ events, currentHour }) => {
         {/* Bottom hour markers - Military time */}
         <View style={styles.logGraphHourMarkers}>
           {[...Array(25)].map((_, i) => (
-            <View key={`hour-${i}`} style={{ position: 'absolute', left: i * hourWidth }}>
+            <View key={`hour-${i}`} style={{ 
+              position: 'absolute', 
+              left: i * hourWidth,
+              transform: [{ translateX: -scale(8) }],
+              alignItems: 'center'
+            }}>
               <Text style={[styles.logGraphHourMarker, { fontSize: scaleFont(9) }]}>
                 {i}
               </Text>
