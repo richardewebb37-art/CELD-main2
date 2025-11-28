@@ -217,52 +217,60 @@ export const styles = StyleSheet.create({
   verifyButtonDisabled: { backgroundColor: '#475569' },
   verifyButtonText: { color: '#fff', fontWeight: 'bold' },
   
-  // LOG GRAPH WRAPPER (3-COLUMN LAYOUT)
+  // LOG GRAPH - EXACT LAYOUT
   logGraphWrapper: { 
     flexDirection: 'row', 
-    backgroundColor: '#1e293b', 
+    backgroundColor: '#000000', 
     borderRadius: scale(8), 
     padding: scale(12), 
     marginBottom: scale(16), 
     borderWidth: 1, 
-    borderColor: '#334155' 
+    borderColor: '#333333' 
   },
-  logGraphStatusLabels: { 
-    width: scale(40), 
-    justifyContent: 'space-around' 
+  
+  // LEFT LABELS (OF, 40, DNC, ON)
+  logGraphLeftLabels: { 
+    width: scale(35), 
+    justifyContent: 'space-around',
+    marginRight: scale(8)
   },
-  logGraphStatusLabel: { 
+  logGraphLeftLabel: { 
     justifyContent: 'center', 
-    alignItems: 'center' 
+    alignItems: 'flex-start' 
   },
-  logGraphStatusLabelText: { 
-    color: '#cbd5e1', 
+  logGraphLeftLabelText: { 
+    color: '#ffffff', 
     fontWeight: '600' 
   },
-  logGraphContainer: { 
-    flex: 1, 
-    marginHorizontal: scale(8) 
+  
+  // MAIN GRAPH
+  logGraphMainContainer: { 
+    flex: 1 
   },
-  hourLabels: { 
+  logGraphHourMarkers: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
-    marginTop: scale(8) 
+    marginTop: scale(6),
+    paddingHorizontal: scale(2)
   },
-  hourLabel: { 
-    color: '#94a3b8', 
-    textAlign: 'center' 
+  logGraphHourMarker: { 
+    color: '#888888', 
+    textAlign: 'center',
+    width: scale(16)
   },
-  logGraphTotalTimes: { 
-    width: scale(60), 
-    justifyContent: 'space-around' 
+  
+  // RIGHT TIMES
+  logGraphRightTimes: { 
+    width: scale(50), 
+    justifyContent: 'space-around',
+    marginLeft: scale(8)
   },
-  logGraphTotalTime: { 
+  logGraphRightTime: { 
     justifyContent: 'center', 
     alignItems: 'flex-end' 
   },
-  logGraphTotalTimeText: { 
+  logGraphRightTimeText: { 
     color: '#60a5fa', 
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', 
     fontWeight: '600' 
   },
   
