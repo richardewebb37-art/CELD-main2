@@ -1,60 +1,17 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, Alert, StatusBar, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, StatusBar } from 'react-native';
 import { scale, scaleFont } from './utils';
 import { styles } from './styles';
 
-interface LockedScreensProps {
-  roadsideLocked: boolean;
-  dvirLocked: boolean;
-  dvirType: string;
-  dvirTimer: number;
-  dvirChecklist: Record<string, boolean>;
-  setDvirChecklist: (value: React.SetStateAction<Record<string, boolean>>) => void;
-  dvirItems: Record<string, string[]>;
-  driverInfo: any;
-  gauges: any;
-  formatTime: (h: number, m: number, s: number) => string;
-  currentStatus: string;
-  ruleSet: string;
-  attemptExitRoadside: () => void;
-  completeDVIR: () => void;
-  toggleDefect: (item: string) => void;
-  showDefectModal: boolean;
-  setShowDefectModal: (value: boolean) => void;
-  currentDefectItem: string;
-  showExitPinModal: boolean;
-  enteredPin: string;
-  setEnteredPin: (value: string) => void;
-  verifyPinAndExit: () => void;
-  setShowExitPinModal: (value: boolean) => void;
-}
+export const LockedScreens = (props) => {
+  const {
+    roadsideLocked, dvirLocked, dvirType, dvirTimer, dvirChecklist, setDvirChecklist,
+    dvirItems, driverInfo, gauges, formatTime, currentStatus, ruleSet,
+    attemptExitRoadside, completeDVIR, toggleDefect, showDefectModal, setShowDefectModal,
+    currentDefectItem, showExitPinModal, enteredPin, setEnteredPin, verifyPinAndExit, setShowExitPinModal
+  } = props;
 
-export const LockedScreens = ({
-  roadsideLocked,
-  dvirLocked,
-  dvirType,
-  dvirTimer,
-  dvirChecklist,
-  setDvirChecklist,
-  dvirItems,
-  driverInfo,
-  gauges,
-  formatTime,
-  currentStatus,
-  ruleSet,
-  attemptExitRoadside,
-  completeDVIR,
-  toggleDefect,
-  showDefectModal,
-  setShowDefectModal,
-  currentDefectItem,
-  showExitPinModal,
-  enteredPin,
-  setEnteredPin,
-  verifyPinAndExit,
-  setShowExitPinModal
-}: LockedScreensProps) => {
-  
+  // ROADSIDE LOCKED SCREEN
   if (roadsideLocked) {
     return (
       <View style={styles.fullscreenLock}>
@@ -124,6 +81,7 @@ export const LockedScreens = ({
     );
   }
 
+  // DVIR LOCKED SCREEN
   if (dvirLocked) {
     return (
       <View style={styles.fullscreenLock}>
@@ -148,7 +106,7 @@ export const LockedScreens = ({
             </View>
           </View>
 
-          <View style={styles.dvirChecklistContainer}>
+          <ScrollView style={styles.dvirChecklistContainer}>
             {Object.entries(dvirItems).map(([item, subitems]) => (
               <View key={item} style={styles.dvirChecklistItem}>
                 <View style={styles.dvirChecklistRow}>
@@ -165,7 +123,7 @@ export const LockedScreens = ({
                 </View>
               </View>
             ))}
-          </View>
+          </ScrollView>
 
           <TouchableOpacity
             onPress={completeDVIR}
