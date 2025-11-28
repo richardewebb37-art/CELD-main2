@@ -7,42 +7,43 @@ import { styles } from './styles';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const LogGraph = ({ events, currentHour }) => {
-  const graphWidth = SCREEN_WIDTH - scale(40);
-  const graphHeight = scale(200);
+  const graphWidth = SCREEN_WIDTH - scale(100); // Leave room for labels on left/right
+  const graphHeight = scale(240);
   const hourWidth = graphWidth / 24;
   const lineHeight = graphHeight / 4;
   
   const statusColors = {
-    OFF_DUTY: '#6B7280',
+    OFF_DUTY: '#60a5fa',
     SLEEPER: '#3B82F6',
     DRIVING: '#10B981',
     ON_DUTY: '#F59E0B'
   };
   
   const statusYPositions = {
-    OFF_DUTY: lineHeight * 0.5,
-    SLEEPER: lineHeight * 1.5,
-    DRIVING: lineHeight * 2.5,
-    ON_DUTY: lineHeight * 3.5
+    OFF_DUTY: 0,
+    SLEEPER: lineHeight,
+    DRIVING: lineHeight * 2,
+    ON_DUTY: lineHeight * 3
   };
 
-  const statusLabels = ['OFF', 'SB', 'D', 'ON'];
+  const statusLabels = ['OF', '40', 'DNC', 'ON'];
+  const hourMarkers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', 'N', '1', 'S', '8', '4', '3', '4', '2', '8', 'Y', 'M', 'N'];
 
   return (
     <View style={styles.logGraphWrapper}>
-      {/* Status labels on left */}
-      <View style={styles.logGraphStatusLabels}>
+      {/* Left side - Status labels */}
+      <View style={styles.logGraphLeftLabels}>
         {statusLabels.map((label, idx) => (
-          <View key={label} style={[styles.logGraphStatusLabel, { height: lineHeight }]}>
-            <Text style={[styles.logGraphStatusLabelText, { fontSize: scaleFont(11) }]}>{label}</Text>
+          <View key={label} style={[styles.logGraphLeftLabel, { height: lineHeight }]}>
+            <Text style={[styles.logGraphLeftLabelText, { fontSize: scaleFont(11) }]}>{label}</Text>
           </View>
         ))}
       </View>
 
-      {/* Main graph */}
-      <View style={styles.logGraphContainer}>
+      {/* Main graph container */}
+      <View style={styles.logGraphMainContainer}>
         <Svg width={graphWidth} height={graphHeight}>
-          {/* Hour grid lines */}
+          {/* Vertical hour grid lines */}
           {[...Array(25)].map((_, i) => (
             <Line
               key={`grid-${i}`}
@@ -50,72 +51,81 @@ export const LogGraph = ({ events, currentHour }) => {
               y1={0}
               x2={i * hourWidth}
               y2={graphHeight}
-              stroke="#334155"
+              stroke="#333333"
               strokeWidth="1"
-              strokeDasharray={i % 6 === 0 ? "0" : "4,4"}
             />
           ))}
           
-          {/* Status lines */}
-          {[0, 1, 2, 3].map(i => (
+          {/* Horizontal status separator lines */}
+          {[1, 2, 3].map(i => (
             <Line
-              key={`status-line-${i}`}
+              key={`h-line-${i}`}
               x1={0}
-              y1={lineHeight * (i + 0.5)}
+              y1={lineHeight * i}
               x2={graphWidth}
-              y2={lineHeight * (i + 0.5)}
-              stroke="#475569"
-              strokeWidth="2"
+              y2={lineHeight * i}
+              stroke="#555555"
+              strokeWidth="1"
             />
           ))}
           
-          {/* Event blocks */}
+          {/* Event blocks - Fill the entire row height */}
           {events.map((event, idx) => {
-            const startX = (event.startHour + event.startMinute / 60) * hourWidth;
-            const width = event.duration * hourWidth;
-            const y = statusYPositions[event.status] - scale(15);
+            const startX = (event.startHour + (event.startMinute || 0) / 60) * hourWidth;
+            const blockWidth = event.duration * hourWidth;
+            const y = statusYPositions[event.status];
+            const blockHeight = lineHeight;
             
             return (
               <Rect
                 key={`event-${idx}`}
                 x={startX}
                 y={y}
-                width={width}
-                height={scale(30)}
+                width={blockWidth}
+                height={blockHeight}
                 fill={statusColors[event.status]}
-                rx={scale(4)}
+                opacity={0.8}
               />
             );
           })}
           
-          {/* Current time indicator */}
-          <Line
-            x1={currentHour * hourWidth}
-            y1={0}
-            x2={currentHour * hourWidth}
-            y2={graphHeight}
-            stroke="#ef4444"
-            strokeWidth="3"
-          />
+          {/* Current time indicator - White vertical line */}
+          {currentHour !== undefined && (
+            <Line
+              x1={currentHour * hourWidth}
+              y1={0}
+              x2={currentHour * hourWidth}
+              y2={graphHeight}
+              stroke="#ffffff"
+              strokeWidth="2"
+            />
+          )}
         </Svg>
         
-        {/* Hour labels */}
-        <View style={styles.hourLabels}>
-          {[0, 6, 12, 18, 24].map(hour => (
-            <Text key={`hour-${hour}`} style={[styles.hourLabel, { fontSize: scaleFont(10) }]}>
-              {hour === 0 ? '12AM' : hour === 12 ? '12PM' : hour > 12 ? `${hour-12}PM` : `${hour}AM`}
+        {/* Bottom hour markers */}
+        <View style={styles.logGraphHourMarkers}>
+          {hourMarkers.map((hour, idx) => (
+            <Text key={`hour-${idx}`} style={[styles.logGraphHourMarker, { fontSize: scaleFont(9) }]}>
+              {hour}
             </Text>
           ))}
         </View>
       </View>
 
-      {/* Total times on right */}
-      <View style={styles.logGraphTotalTimes}>
-        {['08:45:30', '07:00:00', '06:15:20', '01:59:10'].map((time, idx) => (
-          <View key={idx} style={[styles.logGraphTotalTime, { height: lineHeight }]}>
-            <Text style={[styles.logGraphTotalTimeText, { fontSize: scaleFont(10) }]}>{time}</Text>
-          </View>
-        ))}
+      {/* Right side - Total times */}
+      <View style={styles.logGraphRightTimes}>
+        <View style={[styles.logGraphRightTime, { height: lineHeight }]}>
+          <Text style={[styles.logGraphRightTimeText, { fontSize: scaleFont(10) }]}>10:30m</Text>
+        </View>
+        <View style={[styles.logGraphRightTime, { height: lineHeight }]}>
+          <Text style={[styles.logGraphRightTimeText, { fontSize: scaleFont(10) }]}>04:0m</Text>
+        </View>
+        <View style={[styles.logGraphRightTime, { height: lineHeight }]}>
+          <Text style={[styles.logGraphRightTimeText, { fontSize: scaleFont(10) }]}>04:0m</Text>
+        </View>
+        <View style={[styles.logGraphRightTime, { height: lineHeight }]}>
+          <Text style={[styles.logGraphRightTimeText, { fontSize: scaleFont(10) }]}>04:24m</Text>
+        </View>
       </View>
     </View>
   );
