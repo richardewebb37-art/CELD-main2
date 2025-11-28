@@ -45,7 +45,7 @@ export const LogGraph = ({ events, currentHour }) => {
   return (
     <View style={styles.logGraphWrapper}>
       {/* Left side - Status labels */}
-      <View style={styles.logGraphLeftLabels}>
+      <View style={[styles.logGraphLeftLabels, { height: graphHeight }]}>
         {statusLabels.map((label, idx) => (
           <View key={label} style={[styles.logGraphLeftLabel, { height: lineHeight }]}>
             <Text style={[styles.logGraphLeftLabelText, { fontSize: scaleFont(10) }]}>{label}</Text>
