@@ -148,7 +148,7 @@ export const LogGraph = ({ events, currentHour }) => {
       </View>
 
       {/* Right side - Total times */}
-      <View style={styles.logGraphRightTimes}>
+      <View style={[styles.logGraphRightTimes, { height: graphHeight }]}>
         <View style={[styles.logGraphRightTime, { height: lineHeight }]}>
           <Text style={[styles.logGraphRightTimeText, { fontSize: scaleFont(10) }]}>{calculateTotalTime('OFF_DUTY')}</Text>
         </View>
